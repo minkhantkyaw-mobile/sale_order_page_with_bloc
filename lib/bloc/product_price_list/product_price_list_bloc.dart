@@ -5,7 +5,6 @@ import 'package:sale_order_project/models/product_price_list_model.dart';
 import '../../services/db_service.dart';
 
 import 'package:sqflite/sqflite.dart';
-
 class ProductPricelistBloc extends Bloc<ProductPricelistEvent, ProductPricelistState> {
   final DBService dbService;
 
@@ -15,12 +14,7 @@ class ProductPricelistBloc extends Bloc<ProductPricelistEvent, ProductPricelistS
       try {
         final db = await dbService.database;
         final maps = await db.query('product_pricelist', orderBy: 'id DESC');
-        final pricelists = maps.map((map) => ProductPriceListModel(
-          id: map['id'] as int,
-          productId: map['productId'] as int,
-          unitId: map['unitId'] as int,
-          price: map['price'] as double,
-        )).toList();
+        final pricelists = maps.map((map) => ProductPriceListModel.fromMap(map)).toList();
         emit(PricelistLoaded(pricelists));
       } catch (e) {
         emit(PricelistError(e.toString()));
@@ -33,6 +27,7 @@ class ProductPricelistBloc extends Bloc<ProductPricelistEvent, ProductPricelistS
         'productId': event.pricelist.productId,
         'unitId': event.pricelist.unitId,
         'price': event.pricelist.price,
+        'factor': event.pricelist.factor, // save factor
       });
       add(LoadPricelist());
     });
@@ -45,6 +40,7 @@ class ProductPricelistBloc extends Bloc<ProductPricelistEvent, ProductPricelistS
           'productId': event.pricelist.productId,
           'unitId': event.pricelist.unitId,
           'price': event.pricelist.price,
+          'factor': event.pricelist.factor, // update factor
         },
         where: 'id = ?',
         whereArgs: [event.pricelist.id],

@@ -15,7 +15,7 @@ class DBService {
     final path = join(dbPath, 'products.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE products(
@@ -42,13 +42,38 @@ class DBService {
 ''');
 
         await db.execute('''
-  CREATE TABLE product_pricelist(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    productId INTEGER,
-    unitId INTEGER,
-    price REAL
-  )
+CREATE TABLE product_pricelist(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  productId INTEGER,
+  unitId INTEGER,
+  price REAL,
+  factor REAL DEFAULT 1  -- new column to store conversion factor
+)
 ''');
+
+
+        await db.execute('''
+    CREATE TABLE sale_orders(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customerName TEXT,
+      customerPhone TEXT,
+      customerAddress TEXT,
+      createdAt TEXT
+    )
+  ''');
+
+        // New Sale Order Lines Table
+        await db.execute('''
+    CREATE TABLE sale_order_lines(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      saleOrderId INTEGER,
+      productId INTEGER,
+      unitId INTEGER,
+      quantity REAL,
+      price REAL,
+      FOREIGN KEY(saleOrderId) REFERENCES sale_orders(id)
+    )
+  ''');
 
         await db.insert('product_categories', {'name': 'Electronics'});
         await db.insert('product_categories', {'name': 'Clothes'});
@@ -57,20 +82,91 @@ class DBService {
         await db.insert('units', {'name': 'Box'});
 
       },
+
         onUpgrade: (db, oldVersion, newVersion) async {
-          if (oldVersion < 2) {
+          if (oldVersion < 3) {
             await db.execute('''
-        CREATE TABLE product_pricelist(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          productId INTEGER,
-          unitId INTEGER,
-          price REAL
-        )
-      ''');
+      CREATE TABLE sale_orders(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customerName TEXT,
+        customerPhone TEXT,
+        customerAddress TEXT,
+        createdAt TEXT
+      )
+    ''');
+            await db.execute('''
+      CREATE TABLE sale_order_lines(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        saleOrderId INTEGER,
+        productId INTEGER,
+        unitId INTEGER,
+        quantity REAL,
+        price REAL,
+        FOREIGN KEY(saleOrderId) REFERENCES sale_orders(id)
+      )
+    ''');
           }
-        },
+          if (oldVersion < 4) {
+            await db.execute(
+                'ALTER TABLE product_pricelist ADD COLUMN factor REAL DEFAULT 1;'
+            );
+          }
+        }
+
     );
 
   }
 
+
+  Future<List<Map<String, dynamic>>> getProducts() async {
+    final db = await database;
+    return db.query('products');
+  }
+
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    final db = await database;
+    return db.query('product_categories');
+  }
+
+  Future<List<Map<String, dynamic>>> getUnits() async {
+    final db = await database;
+    return db.query('units');
+  }
+
+  Future<int> insertProduct(Map<String, dynamic> product) async {
+    final db = await database;
+    return db.insert('products', product);
+  }
+
+  Future<int> insertCategory(Map<String, dynamic> category) async {
+    final db = await database;
+    return db.insert('product_categories', category);
+  }
+
+  Future<int> insertUnit(Map<String, dynamic> unit) async {
+    final db = await database;
+    return db.insert('units', unit);
+  }
+
+  Future<int> insertSaleOrder(Map<String, dynamic> order) async {
+    final db = await database;
+    return db.insert('sale_orders', order);
+  }
+
+  Future<int> insertSaleOrderLine(Map<String, dynamic> line) async {
+    final db = await database;
+    return db.insert('sale_order_lines', line);
+  }
+
+  Future<List<Map<String, dynamic>>> getProductPricelist(int productId) async {
+    final db = await database;
+    return db.query(
+      'product_pricelist',
+      where: 'productId = ?',
+      whereArgs: [productId],
+    );
+  }
+
 }
+
+

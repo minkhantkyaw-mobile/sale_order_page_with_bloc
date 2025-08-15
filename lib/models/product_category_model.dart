@@ -18,4 +18,10 @@ class ProductCategory {
       name: name ?? this.name,
     );
   }
+  factory ProductCategory.fromMap(Map<String, dynamic> map) {
+    return ProductCategory(
+      id: map['id'] as int,
+      name: map['name'] as String,
+    );
+  }
 }
