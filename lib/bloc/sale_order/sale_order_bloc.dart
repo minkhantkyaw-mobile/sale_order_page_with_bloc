@@ -15,6 +15,11 @@ class SaleOrderBloc extends Bloc<SaleOrderEvent, SaleOrderState> {
   List<Product> _allProducts = [];
   List<ProductCategory> _allCategories = [];
 
+  ProductCategory? _currentCategory;
+  String _currentSearch = '';
+
+
+
   SaleOrderBloc({
     required this.productRepository,
     required this.dbService,
@@ -68,26 +73,50 @@ class SaleOrderBloc extends Bloc<SaleOrderEvent, SaleOrderState> {
     }
   }
 
-  void _onFilterProductsByCategory(
-      FilterProductsByCategory event, Emitter<SaleOrderState> emit) {
+  void _onFilterProductsByCategory(FilterProductsByCategory event, Emitter<SaleOrderState> emit) {
+    _currentCategory = _allCategories.firstWhere((c) => c.id == event.categoryId);
+    final filtered = _applyFilters();
+
     final state = this.state;
     if (state is SaleOrderProductsLoaded) {
-      final filtered = _allProducts
-          .where((p) => p.categoryId == event.categoryId)
-          .toList();
       emit(state.copyWith(filteredProducts: filtered));
     }
   }
 
+  List<Product> _applyFilters() {
+    var filtered = _allProducts;
+
+    if (_currentCategory != null) {
+      filtered = filtered.where((p) => p.categoryId == _currentCategory!.id).toList();
+    }
+
+    if (_currentSearch.isNotEmpty) {
+      filtered = filtered
+          .where((p) => p.name.toLowerCase().contains(_currentSearch.toLowerCase()))
+          .toList();
+    }
+
+    return filtered;
+  }
+
   void _onSearchProducts(SearchProducts event, Emitter<SaleOrderState> emit) {
+    _currentSearch = event.query;
+    final filtered = _applyFilters();
+
     final state = this.state;
     if (state is SaleOrderProductsLoaded) {
-      final searched = _allProducts
-          .where((p) => p.name.toLowerCase().contains(event.query.toLowerCase()))
-          .toList();
-      emit(state.copyWith(filteredProducts: searched));
+      emit(state.copyWith(filteredProducts: filtered));
     }
   }
+  void resetFilters() {
+    _currentCategory = null;
+    _currentSearch = '';
+    final state = this.state;
+    if (state is SaleOrderProductsLoaded) {
+      emit(state.copyWith(filteredProducts: _allProducts));
+    }
+  }
+
 
   void _onAddLineItem(AddLineItem event, Emitter<SaleOrderState> emit) {
     final state = this.state;

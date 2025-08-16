@@ -19,52 +19,72 @@ class ProductPriceListScreen extends StatelessWidget {
       {ProductPriceListModel? pricelist,
         List<Product> products = const [],
         List<Unit> units = const []}) {
-
     Product? selectedProduct = pricelist != null
         ? products.firstWhere((p) => p.id == pricelist.productId)
-        : products.isNotEmpty ? products[0] : null;
+        : products.isNotEmpty
+        ? products[0]
+        : null;
 
     Unit? selectedUnit = pricelist != null
         ? units.firstWhere((u) => u.id == pricelist.unitId)
-        : units.isNotEmpty ? units[0] : null;
+        : units.isNotEmpty
+        ? units[0]
+        : null;
 
-    final priceController = TextEditingController(text: pricelist?.price.toString() ?? '');
-    final factorController = TextEditingController(text: pricelist?.factor.toString() ?? '1');
+    final priceController =
+    TextEditingController(text: pricelist?.price.toString() ?? '');
+    final factorController =
+    TextEditingController(text: pricelist?.factor.toString() ?? '1');
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(pricelist == null ? 'Add Price' : 'Edit Price'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButton<Product>(
-              value: selectedProduct,
-              items: products.map((p) => DropdownMenuItem(
-                value: p,
-                child: Text(p.name),
-              )).toList(),
-              onChanged: (val) => selectedProduct = val,
-            ),
-            DropdownButton<Unit>(
-              value: selectedUnit,
-              items: units.map((u) => DropdownMenuItem(
-                value: u,
-                child: Text(u.name),
-              )).toList(),
-              onChanged: (val) => selectedUnit = val,
-            ),
-            TextField(
-              controller: priceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Price'),
-            ),
-            TextField(
-              controller: factorController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Factor'),
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<Product>(
+                value: selectedProduct,
+                decoration: const InputDecoration(
+                    labelText: 'Product', border: OutlineInputBorder()),
+                items: products
+                    .map((p) =>
+                    DropdownMenuItem(value: p, child: Text(p.name)))
+                    .toList(),
+                onChanged: (val) => selectedProduct = val,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<Unit>(
+                value: selectedUnit,
+                decoration: const InputDecoration(
+                    labelText: 'Unit', border: OutlineInputBorder()),
+                items: units
+                    .map((u) => DropdownMenuItem(value: u, child: Text(u.name)))
+                    .toList(),
+                onChanged: (val) => selectedUnit = val,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Price',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: factorController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Factor',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
@@ -97,7 +117,14 @@ class ProductPriceListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Product Pricelist')),
+      appBar: AppBar(
+        title: const Text(
+          'Product Pricelist',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blueAccent,
+      ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, productState) {
           final products = productState is ProductLoaded
@@ -116,49 +143,81 @@ class ProductPriceListScreen extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   } else if (state is PricelistLoaded) {
                     if (state.pricelists.isEmpty) {
-                      return const Center(child: Text('No pricelist yet.'));
+                      return const Center(
+                        child: Text(
+                          'No pricelist yet.',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      );
                     }
                     return ListView.builder(
+                      padding: const EdgeInsets.all(12),
                       itemCount: state.pricelists.length,
                       itemBuilder: (context, index) {
                         final pricelist = state.pricelists[index];
                         final product = products.firstWhere(
                               (p) => p.id == pricelist.productId,
-                          orElse: () => Product(id: 0, name: 'Unknown', categoryId: 0, unitId: 0, price: 0, onHandQty: 0),
+                          orElse: () => Product(
+                              id: 0,
+                              name: 'Unknown',
+                              categoryId: 0,
+                              unitId: 0,
+                              price: 0,
+                              onHandQty: 0),
                         );
                         final unit = units.firstWhere(
                               (u) => u.id == pricelist.unitId,
                           orElse: () => Unit(id: 0, name: 'Unknown'),
                         );
 
-                        return ListTile(
-                          title: Text('${product.name} - ${unit.name}'),
-                          subtitle: Text('Price: \$${pricelist.price}, Factor: ${pricelist.factor}'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _showFormDialog(
-                                  context,
-                                  pricelist: pricelist,
-                                  products: products,
-                                  units: units,
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          elevation: 3,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
+                            title: Text(
+                              '${product.name} - ${unit.name}',
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: Text(
+                                'Price: \$${pricelist.price}, Factor: ${pricelist.factor}'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () => _showFormDialog(
+                                    context,
+                                    pricelist: pricelist,
+                                    products: products,
+                                    units: units,
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  context.read<ProductPricelistBloc>().add(DeletePricelist(pricelist.id!));
-                                },
-                              ),
-                            ],
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () {
+                                    context
+                                        .read<ProductPricelistBloc>()
+                                        .add(DeletePricelist(pricelist.id!));
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
                     );
                   } else if (state is PricelistError) {
-                    return Center(child: Text(state.message));
+                    return Center(
+                      child: Text(
+                        state.message,
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    );
                   }
                   return const SizedBox();
                 },
@@ -177,7 +236,9 @@ class ProductPriceListScreen extends StatelessWidget {
               ? (context.read<UnitBloc>().state as UnitLoaded).units
               : [],
         ),
+        backgroundColor: Colors.blueAccent,
         child: const Icon(Icons.add),
+        tooltip: 'Add Price',
       ),
     );
   }

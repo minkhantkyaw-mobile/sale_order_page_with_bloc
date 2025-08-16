@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:sale_order_project/repository/product_repository.dart';
 import 'package:sale_order_project/services/db_service.dart';
 import 'package:sale_order_project/ui/product_form_screen.dart';
 import 'package:sale_order_project/ui/sale_order_history_screen.dart';
 import 'package:sale_order_project/ui/sale_order_screen.dart';
+import 'package:sale_order_project/ui/welcome_screen.dart';
 import 'bloc/product/product_bloc.dart';
 import 'bloc/product/product_event.dart';
 import 'bloc/product_category/product_category_bloc.dart';
@@ -53,12 +55,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: SaleOrderScreen(),
+      home: WelcomeScreen(),
     );
   }
 }

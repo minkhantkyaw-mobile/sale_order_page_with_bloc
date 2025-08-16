@@ -24,4 +24,5 @@ class ProductCategory {
       name: map['name'] as String,
     );
   }
+
 }

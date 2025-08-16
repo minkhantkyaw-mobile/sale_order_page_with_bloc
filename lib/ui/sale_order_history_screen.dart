@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/db_service.dart';
+import 'package:intl/intl.dart';
 
 class SaleOrderHistoryScreen extends StatefulWidget {
   const SaleOrderHistoryScreen({super.key});
@@ -13,11 +14,14 @@ class _SaleOrderHistoryScreenState extends State<SaleOrderHistoryScreen> {
   List<Map<String, dynamic>> saleOrders = [];
   Map<int, List<Map<String, dynamic>>> saleOrderLines = {};
 
+  final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+
   @override
   void initState() {
     super.initState();
     _loadSaleOrders();
   }
+
   Future<void> _loadSaleOrders() async {
     final db = await dbService.database;
 
@@ -38,7 +42,6 @@ class _SaleOrderHistoryScreenState extends State<SaleOrderHistoryScreen> {
         whereArgs: [order['id']],
       );
 
-      // create mutable copy and add unit/product names
       final mutableLines = lines.map((line) {
         return {
           ...line,
@@ -56,34 +59,107 @@ class _SaleOrderHistoryScreenState extends State<SaleOrderHistoryScreen> {
     });
   }
 
-
+  double _calculateTotal(List<Map<String, dynamic>> lines) {
+    return lines.fold(0.0, (sum, line) {
+      final price = line['price'] as num? ?? 0;
+      final qty = line['quantity'] as num? ?? 0;
+      return sum + (price * qty);
+    }).toDouble();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sale Order History')),
+      appBar: AppBar(
+        title: const Text('Sale Order History',style: TextStyle(color: Colors.white),),
+        backgroundColor: Colors.blueAccent,
+      ),
       body: saleOrders.isEmpty
           ? const Center(child: Text('No sale orders found'))
           : ListView.builder(
+        padding: const EdgeInsets.all(12),
         itemCount: saleOrders.length,
         itemBuilder: (context, index) {
           final order = saleOrders[index];
           final lines = saleOrderLines[order['id']] ?? [];
+          final totalPrice = _calculateTotal(lines);
 
           return Card(
-            margin: const EdgeInsets.all(8),
-            child: ExpansionTile(
-              title: Text(
-                  '${order['customerName']} - ${order['createdAt']}'),
-              subtitle: Text(
-                  'Phone: ${order['customerPhone']}, Address: ${order['customerAddress']}'),
-              children: lines.map((line) {
-                return ListTile(
-                  title: Text('Product: ${line['productName']}'),
-                  subtitle: Text('Unit: ${line['unitName']}, Qty: ${line['quantity']}, Price: ${line['price']}'),
-                );
-
-              }).toList(),
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Order Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          order['customerName'] ?? 'Unknown Customer',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '\$${totalPrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Phone: ${order['customerPhone'] ?? '-'} | Address: ${order['customerAddress'] ?? '-'}',
+                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Date: ${order['createdAt'] != null ? dateFormat.format(DateTime.parse(order['createdAt'])) : '-'}',
+                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                  const Divider(height: 16, thickness: 1),
+                  // Line Items
+                  ...lines.map((line) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: Text(
+                              line['productName'] ?? 'Unknown Product',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              '${line['quantity'] ?? 0} ${line['unitName'] ?? ''}',
+                              style: const TextStyle(fontSize: 14),
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              '\$${line['price'] ?? 0}',
+                              style: const TextStyle(fontSize: 14),
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
             ),
           );
         },

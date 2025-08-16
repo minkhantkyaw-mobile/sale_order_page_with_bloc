@@ -75,11 +75,44 @@ CREATE TABLE product_pricelist(
     )
   ''');
 
-        await db.insert('product_categories', {'name': 'Electronics'});
-        await db.insert('product_categories', {'name': 'Clothes'});
 
-        await db.insert('units', {'name': 'Piece'});
-        await db.insert('units', {'name': 'Box'});
+        // Preload categories
+        final electronicsId = await db.insert('product_categories', {'name': 'Electronics'});
+        final clothesId = await db.insert('product_categories', {'name': 'Clothes'});
+
+        // Preload units
+        final pieceId = await db.insert('units', {'name': 'Piece'});
+        final boxId = await db.insert('units', {'name': 'Box'});
+
+        // Preload products
+        await db.insert('products', {
+          'name': 'Smartphone',
+          'categoryId': electronicsId,
+          'unitId': pieceId,
+          'price': 299.99,
+          'onHandQty': 50,
+        });
+        await db.insert('products', {
+          'name': 'Laptop',
+          'categoryId': electronicsId,
+          'unitId': pieceId,
+          'price': 799.99,
+          'onHandQty': 30,
+        });
+        await db.insert('products', {
+          'name': 'T-Shirt',
+          'categoryId': clothesId,
+          'unitId': pieceId,
+          'price': 19.99,
+          'onHandQty': 100,
+        });
+        await db.insert('products', {
+          'name': 'Jeans',
+          'categoryId': clothesId,
+          'unitId': pieceId,
+          'price': 49.99,
+          'onHandQty': 60,
+        });
 
       },
 

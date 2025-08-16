@@ -18,12 +18,14 @@ class SaleOrderProductsLoaded extends SaleOrderState {
   final List<Product> filteredProducts;
   final List<ProductCategory> categories;
   final List<SaleOrderLineModel> lines;
+  final int? selectedCategoryId; // <--- add this
 
   const SaleOrderProductsLoaded({
     required this.products,
     required this.filteredProducts,
     this.categories = const [],
     this.lines = const [],
+    this.selectedCategoryId, // <--- add this
   });
 
   SaleOrderProductsLoaded copyWith({
@@ -31,18 +33,21 @@ class SaleOrderProductsLoaded extends SaleOrderState {
     List<Product>? filteredProducts,
     List<ProductCategory>? categories,
     List<SaleOrderLineModel>? lines,
+    int? selectedCategoryId, // <--- fix semicolon
   }) {
     return SaleOrderProductsLoaded(
       products: products ?? this.products,
       filteredProducts: filteredProducts ?? this.filteredProducts,
       categories: categories ?? this.categories,
       lines: lines ?? this.lines,
+      selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
     );
   }
 
   @override
-  List<Object?> get props => [products, filteredProducts,  categories, lines];
+  List<Object?> get props => [products, filteredProducts, categories, lines, selectedCategoryId];
 }
+
 class SaleOrderError extends SaleOrderState {
   final String message;
   SaleOrderError(this.message);
