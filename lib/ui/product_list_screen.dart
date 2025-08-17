@@ -166,7 +166,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 );
               },
             );
-          } else {
+          }
+          else if (state is ProductError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    state.message, // 👈 now using the actual error message
+                    style: const TextStyle(color: Colors.red, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 👇 Trigger reload
+                      context.read<ProductBloc>().add(LoadProducts());
+                    },
+                    child: const Text("Retry"),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          else {
             return const Center(
               child: Text('Error loading products', style: TextStyle(color: Colors.red)),
             );
@@ -177,7 +201,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         onPressed: () {
          Get.offAll(() => ProductFormScreen());
         },
-        child: const Icon(Icons.add),
+        child:  Icon(Icons.add),
         backgroundColor: Colors.blueAccent,
         tooltip: 'Add New Product',
       ),

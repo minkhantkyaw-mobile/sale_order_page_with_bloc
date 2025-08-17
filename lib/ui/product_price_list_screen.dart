@@ -11,108 +11,11 @@ import '../bloc/product_unit/product_unit_bloc.dart';
 import '../bloc/product_unit/product_unit_state.dart';
 import '../models/product_model.dart';
 import '../models/product_unit_model.dart';
+import '../widgets/product_price_list_form_dialog.dart';
 
 class ProductPriceListScreen extends StatelessWidget {
   const ProductPriceListScreen({super.key});
 
-  void _showFormDialog(BuildContext context,
-      {ProductPriceListModel? pricelist,
-        List<Product> products = const [],
-        List<Unit> units = const []}) {
-    Product? selectedProduct = pricelist != null
-        ? products.firstWhere((p) => p.id == pricelist.productId)
-        : products.isNotEmpty
-        ? products[0]
-        : null;
-
-    Unit? selectedUnit = pricelist != null
-        ? units.firstWhere((u) => u.id == pricelist.unitId)
-        : units.isNotEmpty
-        ? units[0]
-        : null;
-
-    final priceController =
-    TextEditingController(text: pricelist?.price.toString() ?? '');
-    final factorController =
-    TextEditingController(text: pricelist?.factor.toString() ?? '1');
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(pricelist == null ? 'Add Price' : 'Edit Price'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<Product>(
-                value: selectedProduct,
-                decoration: const InputDecoration(
-                    labelText: 'Product', border: OutlineInputBorder()),
-                items: products
-                    .map((p) =>
-                    DropdownMenuItem(value: p, child: Text(p.name)))
-                    .toList(),
-                onChanged: (val) => selectedProduct = val,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<Unit>(
-                value: selectedUnit,
-                decoration: const InputDecoration(
-                    labelText: 'Unit', border: OutlineInputBorder()),
-                items: units
-                    .map((u) => DropdownMenuItem(value: u, child: Text(u.name)))
-                    .toList(),
-                onChanged: (val) => selectedUnit = val,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: priceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Price',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: factorController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Factor',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              if (selectedProduct != null && selectedUnit != null) {
-                final newPricelist = ProductPriceListModel(
-                  id: pricelist?.id ?? DateTime.now().millisecondsSinceEpoch,
-                  productId: selectedProduct!.id!,
-                  unitId: selectedUnit!.id!,
-                  price: double.tryParse(priceController.text) ?? 0,
-                  factor: double.tryParse(factorController.text) ?? 1,
-                );
-
-                if (pricelist == null) {
-                  context.read<ProductPricelistBloc>().add(AddPricelist(newPricelist));
-                } else {
-                  context.read<ProductPricelistBloc>().add(UpdatePricelist(newPricelist));
-                }
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,13 +93,18 @@ class ProductPriceListScreen extends StatelessWidget {
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showFormDialog(
-                                    context,
-                                    pricelist: pricelist,
-                                    products: products,
-                                    units: units,
-                                  ),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => ProductPriceListFormDialog(
+                                        pricelist: pricelist,  // existing item to edit
+                                        products: products,
+                                        units: units,
+                                      ),
+                                    );
+                                  },
                                 ),
+
                                 IconButton(
                                   icon: const Icon(Icons.delete, color: Colors.red),
                                   onPressed: () {
@@ -227,19 +135,24 @@ class ProductPriceListScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showFormDialog(
-          context,
-          products: (context.read<ProductBloc>().state is ProductLoaded)
-              ? (context.read<ProductBloc>().state as ProductLoaded).products
-              : [],
-          units: (context.read<UnitBloc>().state is UnitLoaded)
-              ? (context.read<UnitBloc>().state as UnitLoaded).units
-              : [],
-        ),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (_) => ProductPriceListFormDialog(
+              pricelist: null,  // null because it's a new price
+              products: (context.read<ProductBloc>().state is ProductLoaded)
+                  ? (context.read<ProductBloc>().state as ProductLoaded).products
+                  : [],
+              units: (context.read<UnitBloc>().state is UnitLoaded)
+                  ? (context.read<UnitBloc>().state as UnitLoaded).units
+                  : [],
+            ),
+          );
+        },
         backgroundColor: Colors.blueAccent,
-        child: const Icon(Icons.add),
-        tooltip: 'Add Price',
+        child: Icon(Icons.add),
       ),
+
     );
   }
 }

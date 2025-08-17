@@ -5,50 +5,10 @@ import '../bloc/product_unit/product_unit_bloc.dart';
 import '../bloc/product_unit/product_unit_event.dart';
 import '../bloc/product_unit/product_unit_state.dart';
 import '../models/product_unit_model.dart';
+import '../widgets/unit_form_dialog.dart';
 
 class UnitPage extends StatelessWidget {
   const UnitPage({super.key});
-
-  void _showFormDialog(BuildContext context, {Unit? unit}) {
-    final nameController = TextEditingController(text: unit?.name ?? '');
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(unit == null ? 'Add Unit' : 'Edit Unit'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Unit Name',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final newUnit = Unit(
-                id: unit?.id ?? DateTime.now().millisecondsSinceEpoch,
-                name: nameController.text.trim(),
-              );
-
-              if (unit == null) {
-                context.read<UnitBloc>().add(AddUnit(newUnit));
-              } else {
-                context.read<UnitBloc>().add(UpdateUnit(newUnit));
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +59,14 @@ class UnitPage extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showFormDialog(context, unit: unit),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => UnitFormDialog(unit: unit),
+                            );
+                          },
                         ),
+
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
@@ -125,11 +91,16 @@ class UnitPage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showFormDialog(context),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (_) => const UnitFormDialog(),
+          );
+        },
         backgroundColor: Colors.blueAccent,
         child: const Icon(Icons.add),
-        tooltip: 'Add Unit',
       ),
+
     );
   }
 }

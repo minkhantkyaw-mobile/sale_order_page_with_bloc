@@ -151,11 +151,7 @@ CREATE TABLE product_pricelist(
   }
 
 
-  Future<List<Map<String, dynamic>>> getProducts() async {
-    final db = await database;
-    return db.query('products');
-  }
-
+///Some necessary queries
   Future<List<Map<String, dynamic>>> getCategories() async {
     final db = await database;
     return db.query('product_categories');
@@ -164,31 +160,6 @@ CREATE TABLE product_pricelist(
   Future<List<Map<String, dynamic>>> getUnits() async {
     final db = await database;
     return db.query('units');
-  }
-
-  Future<int> insertProduct(Map<String, dynamic> product) async {
-    final db = await database;
-    return db.insert('products', product);
-  }
-
-  Future<int> insertCategory(Map<String, dynamic> category) async {
-    final db = await database;
-    return db.insert('product_categories', category);
-  }
-
-  Future<int> insertUnit(Map<String, dynamic> unit) async {
-    final db = await database;
-    return db.insert('units', unit);
-  }
-
-  Future<int> insertSaleOrder(Map<String, dynamic> order) async {
-    final db = await database;
-    return db.insert('sale_orders', order);
-  }
-
-  Future<int> insertSaleOrderLine(Map<String, dynamic> line) async {
-    final db = await database;
-    return db.insert('sale_order_lines', line);
   }
 
   Future<List<Map<String, dynamic>>> getProductPricelist(int productId) async {

@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:sale_order_project/bloc/product_unit/product_unit_bloc.dart';
 import 'package:sale_order_project/bloc/product_unit/product_unit_state.dart';
-import 'package:sale_order_project/repository/product_category_respository.dart';
-import 'package:sale_order_project/repository/product_unit_repositroy.dart';
 import 'package:sale_order_project/ui/product_category_screen.dart';
 import 'package:sale_order_project/ui/product_list_screen.dart';
 import 'package:sale_order_project/ui/product_price_list_screen.dart';
@@ -16,7 +14,6 @@ import '../bloc/product_category/product_category_state.dart';
 import '../models/product_category_model.dart';
 import '../models/product_model.dart';
 import '../models/product_unit_model.dart';
-import '../services/db_service.dart';
 import '../widgets/navigation_button.dart';
 
 class ProductFormScreen extends StatefulWidget {
